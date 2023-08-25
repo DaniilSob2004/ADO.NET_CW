@@ -29,15 +29,15 @@
 
         <Label Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Center">Name:</Label>
         <TextBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Padding="0,2,0,2" x:Name="textBoxName"
-                 Margin="0,0,10,0" Text="{Binding Path=Name, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Tag="Name" TextChanged="TextBox_TextChanged"/>
+                 Margin="0,0,10,0" Text="{Binding Path=Name, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" TextChanged="TextBox_TextChanged"/>
 
         <Label Grid.Row="3" HorizontalAlignment="Right" VerticalAlignment="Center">Description:</Label>
         <TextBox Grid.Row="3" Grid.Column="1" TextWrapping="Wrap" Padding="0,2,0,2" MaxLines="3" x:Name="textBoxDescription"
-                 Margin="0,0,10,0" VerticalAlignment="Center" Tag="Description" Text="{Binding Path=Description, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" TextChanged="TextBox_TextChanged"/>
+                 Margin="0,0,10,0" VerticalAlignment="Center" Text="{Binding Path=Description, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" TextChanged="TextBox_TextChanged"/>
 
         <Label Grid.Row="4" HorizontalAlignment="Right" VerticalAlignment="Center">Picture:</Label>
         <TextBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Center" Padding="0,2,0,2"
-                 Margin="0,0,10,0" Text="{Binding Path=Picture, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Tag="Picture" x:Name="textBoxPicture" TextChanged="TextBox_TextChanged"/>
+                 Margin="0,0,10,0" Text="{Binding Path=Picture, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" x:Name="textBoxPicture" TextChanged="TextBox_TextChanged"/>
 
         <UniformGrid Grid.Row="5" Grid.ColumnSpan="2" Columns="3">
             <Button x:Name="btnClose" Margin="20,10" Padding="0,0,0,2" Click="BtnClose_Click">Close</Button>

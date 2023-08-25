@@ -51,9 +51,9 @@ namespace first.Views
         {
             if (ProductGroup != null)
             {
-                ProductGroup.Name = name;
-                ProductGroup.Description = description;
-                ProductGroup.Picture = picture;
+                textBoxName.Text = name;
+                textBoxDescription.Text = description;
+                textBoxPicture.Text = picture;
             }
         }
 
