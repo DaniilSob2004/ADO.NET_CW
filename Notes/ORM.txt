@@ -1,0 +1,31 @@
+﻿ORM - Object Relation Mapping
+Отображение реляционных(связанных) данных в виде объектов и связей между ними.
+
+Как правило имеется введу отображение таблиц БД ввиде коллекций объектов
+Например:
+CREATE TABLE ProductGroups (
+    Id          UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    Name        NVARCHAR(50)     NOT NULL,
+    Description NTEXT            NOT NULL,
+    Picture     NVARCHAR(50)     NULL
+)
+
+Отображается след. видом:
+a) создаётся класс (Entity, DTO data transfer object)
+    подбираются наибольше похожие типы данных программирования
+    class ProductGroup {
+        public Guid Id { get; set; }
+        public string Name { get; set; } 
+        public string Description { get; set; } 
+        public string Picture { get; set; } 
+    }
+
+б1) создаётся коллекция:
+   List<ProductGroup> ProductGroups
+в1) циклом с Reader заполняется коллекция и продолжается работа с ней.
+
+
+б2) создаётся DAO/DAL (Data Access Object / Layer) - набор инструментов для работы с данными:
+    List<ProductGroup> GetAllGroups() {...}
+    List<Product> GetProductByGroup(ProductGroup group) {...}
+    bool InsertProduct(Product p) {...}
