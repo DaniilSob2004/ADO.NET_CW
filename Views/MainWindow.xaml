@@ -26,7 +26,11 @@
         </StackPanel>
 
         <StackPanel Grid.Row="1">
-            <Label Content="Group Content:"/>
+            <DockPanel LastChildFill="False">
+                <Label Content="Group Content:" DockPanel.Dock="Left"/>
+                <Button Content="add" x:Name="addGroupBtn" Padding="5,2,5,2" Margin="0,2,10,2" DockPanel.Dock="Right" Click="AddGroupBtn_Click"/>
+            </DockPanel>
+            
             <ListView ItemsSource="{Binding ProductGroups}">
                 <ListView.View>
                     <GridView>

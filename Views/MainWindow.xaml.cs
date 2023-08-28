@@ -11,6 +11,7 @@ namespace first
     public partial class MainWindow : Window
     {
         private SqlConnection connection;
+        private DAL.DAO.ProductGroupDao productGroupDao = null!;
         public ObservableCollection<DAL.Entity.ProductGroup> ProductGroups { get; set; } = new();
 
         public MainWindow()
@@ -27,6 +28,7 @@ namespace first
             {
                 connection = new SqlConnection(App.ConnectionString);
                 connection.Open();  // подключаемся к БД
+                productGroupDao = new DAL.DAO.ProductGroupDao(connection);  // создаём объект DAO для ProductGroup
                 LoadGroups();  // загружаем данные
             }
             catch (Exception ex)
@@ -38,26 +40,17 @@ namespace first
 
         private void Window_Closed(object sender, EventArgs e)
         {
-            connection?.Close();  // закрываем соединение с БД!
+            connection?.Close();  // закрываем соединение с БД
         }
 
 
         private void LoadGroups()
         {
-            using SqlCommand command = new() { Connection = connection };
-            command.CommandText = @"SELECT pg.* FROM ProductGroups AS pg WHERE DeleteDt IS NULL";
             try
             {
-                using SqlDataReader reader = command.ExecuteReader();
-                while (reader.Read())  // get result`s one row
+                foreach (var group in productGroupDao.GetAll())  // получаем список продуктов из БД и добавляем в коллекцию
                 {
-                    ProductGroups.Add(new()
-                    {
-                        Id = reader.GetGuid(0),
-                        Name = reader.GetString(1),
-                        Description = reader.GetString(2),
-                        Picture = reader.GetString(3),
-                    });
+                    ProductGroups.Add(group);
                 }
             }
             catch (Exception ex) { MessageBox.Show(ex.Message, "Query error", MessageBoxButton.OK, MessageBoxImage.Error); }
@@ -65,12 +58,9 @@ namespace first
 
         private bool SaveProductGroup(DAL.Entity.ProductGroup group)
         {
-            using SqlCommand command = new() { Connection = connection };
-            command.CommandText = @$"UPDATE ProductGroups
-                                     SET Name = N'{group.Name}', Description = N'{group.Description}', Picture = N'{group.Picture}' WHERE Id = '{group.Id}'";
             try
             {
-                command.ExecuteNonQuery();
+                productGroupDao.Update(group);  // обновляем данные о группе
                 return true;
             }
             catch (Exception ex)
@@ -82,12 +72,9 @@ namespace first
 
         private bool DeleteProductGroup(DAL.Entity.ProductGroup group)
         {
-            using SqlCommand command = new() { Connection = connection };
-            command.CommandText = @$"UPDATE ProductGroups
-                                     SET DeleteDt = CURRENT_TIMESTAMP WHERE Id = '{group.Id}'";
             try
             {
-                command.ExecuteNonQuery();
+                productGroupDao.Delete(group);  // удаляем группу
                 return true;
             }
             catch (Exception ex)
@@ -100,17 +87,9 @@ namespace first
 
         private void CreateGroup_Click(object sender, RoutedEventArgs e)
         {
-            using SqlCommand command = new SqlCommand() { Connection = connection };
-            command.CommandText =
-                @"CREATE TABLE ProductGroups (
-                    Id          UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
-                    Name        NVARCHAR(50)     NOT NULL,
-                    Description NTEXT            NOT NULL,
-                    Picture     NVARCHAR(50)     NULL
-                )";
             try
             {
-                command.ExecuteNonQuery();
+                productGroupDao.CreateTable();
                 MessageBox.Show("Table created!");
             }
             catch (Exception ex) { MessageBox.Show(ex.Message, "Create error", MessageBoxButton.OK, MessageBoxImage.Error); }
@@ -118,19 +97,17 @@ namespace first
 
         private void InsertGroup_Click(object sender, RoutedEventArgs e)
         {
-            using SqlCommand command = new SqlCommand() { Connection = connection };
-            command.CommandText =
-                @"INSERT INTO ProductGroups (Id, Name, Description, Picture)
-                VALUES
-                    ('089015F4-31B5-4F2B-BA05-A813B5419285', N'Інструменти',     N'Ручний інструмент для побутового використання', N'tools.png' ),
-                    ('A6D7858F-6B75-4C75-8A3D-C0B373828558', N'Офісні товари',   N'Декоративні товари для офісного облаштування', N'office.jpg' ),
-                    ('DEF24080-00AA-440A-9690-3C9267243C43', N'Вироби зі скла',  N'Творчі вироби зі скла', N'glass.jpg' ),
-                    ('2F9A22BC-43F4-4F73-BAB1-9801052D85A9', N'Вироби з дерева', N'Композиції та декоративні твори з деревини', N'wood.jpg' ),
-                    ('D6D9783F-2182-469A-BD08-A24068BC2A23', N'Вироби з каменя', N'Корисні та декоративні вироби з натурального каменю', N'stone.jpg'
-                )";
+            // добавляем несколько товаров
             try
             {
-                command.ExecuteNonQuery();
+                DAL.Entity.ProductGroup newGroup = new DAL.Entity.ProductGroup { Id = Guid.NewGuid(), Name = "Інструменти", Description = "Ручний інструмент для побутового використання", Picture = "tools.png" };
+                productGroupDao.Add(newGroup);
+                ProductGroups.Add(newGroup);
+
+                newGroup = new DAL.Entity.ProductGroup { Id = Guid.NewGuid(), Name = "Офісні товари", Description = "Декоративні товари для офісного облаштування", Picture = "office.jpg" };
+                productGroupDao.Add(newGroup);
+                ProductGroups.Add(newGroup);
+
                 MessageBox.Show("Insert data in table!");
             }
             catch (Exception ex) { MessageBox.Show(ex.Message, "Insert error", MessageBoxButton.OK, MessageBoxImage.Error); }
@@ -138,12 +115,9 @@ namespace first
 
         private void GroupCount_Click(object sender, RoutedEventArgs e)
         {
-            using SqlCommand command = new SqlCommand() { Connection = connection };
-            command.CommandText = "SELECT COUNT(*) FROM ProductGroups WHERE Deletedt IS NULL";
             try
             {
-                int count = Convert.ToInt32(command.ExecuteScalar());
-                MessageBox.Show($"Table has {count} rows!");
+                MessageBox.Show($"Table has {productGroupDao.GetAllCount()} rows!");
             }
             catch (Exception ex) { MessageBox.Show(ex.Message, "Query error", MessageBoxButton.OK, MessageBoxImage.Error); }
         }
@@ -154,27 +128,57 @@ namespace first
             {
                 if (item.Content is DAL.Entity.ProductGroup group)
                 {
-                    CrudGroupsWindow window = new(group);
+                    CrudGroupsWindow window = new(group with { });
                     bool? dialogResult = window.ShowDialog();
                     if (dialogResult == false)
                     {
                         if (window.ProductGroup == null)  // удаление
                         {
-                            if (DeleteProductGroup(group))
+                            if (MessageBox.Show("Подтверждаете удаление?", "Удаление", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                             {
-                                ProductGroups.Remove(group);
-                                MessageBox.Show("Данные удалены!");
+                                if (DeleteProductGroup(group))
+                                {
+                                    ProductGroups.Remove(group);
+                                    MessageBox.Show("Данные удалены!");
+                                }
+                                else
+                                    MessageBox.Show("Проблемы с БД. Попробуйте действие позже.");
                             }
-                            else MessageBox.Show("Проблемы с БД. Попробуйте действие позже.");
                         }
-                        else MessageBox.Show("Действие отменено!");  // отмена
+                        else
+                            MessageBox.Show("Действие отменено!");  // отмена
                     }
                     else if (dialogResult == true)  // сохранение
                     {
-                        if (SaveProductGroup(group)) MessageBox.Show("Данные сохранены!");
-                        else MessageBox.Show("Проблемы с БД. Попробуйте действие позже.");
+                        if (SaveProductGroup(window.ProductGroup!))
+                        {
+                            int index = ProductGroups.IndexOf(group);
+                            ProductGroups.Remove(group);
+                            ProductGroups.Insert(index, window.ProductGroup!);
+
+                            MessageBox.Show("Данные сохранены!");
+                        }
+                        else
+                            MessageBox.Show("Проблемы с БД. Попробуйте действие позже.");
                     }
                 }
+            }
+        }
+
+        private void AddGroupBtn_Click(object sender, RoutedEventArgs e)
+        {
+            DAL.Entity.ProductGroup newGroup = new() { Id = Guid.NewGuid() };
+            CrudGroupsWindow window = new(newGroup);
+            bool? result = window.ShowDialog();
+            if (result ?? false)  // null-coalescence
+            {
+                try
+                {
+                    productGroupDao.Add(newGroup);
+                    ProductGroups.Add(newGroup);
+                    MessageBox.Show("Данные сохранены!");
+                }
+                catch (Exception) { MessageBox.Show("Проблемы с БД. Попробуйте действие позже."); }
             }
         }
     }

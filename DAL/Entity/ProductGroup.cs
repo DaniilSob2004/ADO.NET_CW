@@ -2,7 +2,7 @@
 
 namespace first.DAL.Entity
 {
-    public class ProductGroup
+    public record ProductGroup
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = null!;

@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Input;
-using System.Windows.Media.Imaging;
 
 namespace first.Views
 {
@@ -31,10 +26,11 @@ namespace first.Views
 
         private bool DataValidation()
         {
-            if (ProductGroup != null)
+            if (ProductGroup is not null)
             {  // проверка валидности
                 return !String.IsNullOrEmpty(ProductGroup.Name) &&
                        !String.IsNullOrEmpty(ProductGroup.Description) &&
+                       !String.IsNullOrEmpty(ProductGroup.Picture) &&
                        (ProductGroup.Picture.EndsWith(".jpg") || ProductGroup.Picture.EndsWith(".png"));
             }
             return false;
@@ -42,25 +38,14 @@ namespace first.Views
 
         private bool CheckChangedData()
         {
-            if (ProductGroup != null)  // изменились ли данные
+            if (ProductGroup is not null)  // изменились ли данные
                 return ProductGroup.Name != name || ProductGroup.Description != description || ProductGroup.Picture != picture;
             return false;
-        }
-
-        private void CancelChangeData()
-        {
-            if (ProductGroup != null)
-            {
-                textBoxName.Text = name;
-                textBoxDescription.Text = description;
-                textBoxPicture.Text = picture;
-            }
         }
 
 
         private void BtnClose_Click(object sender, RoutedEventArgs e)
         {
-            CancelChangeData();  // сбрасываем значение полей, которые были изменены
             DialogResult = false;
         }
 
